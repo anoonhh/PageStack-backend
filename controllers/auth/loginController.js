@@ -35,17 +35,26 @@ export const registerUser = async (req, res, next) => {
                     if(! newUser){
                         return next(new HttpError("Failed to create user", 500))
                     }else{
+
+                        const token = jwt.sign(
+                            {id:newUser._id, role:newUser.role}, //data 
+                            process.env.JWT_SECRET_KEY, //secret key
+                            {expiresIn: process.env.JWT_TOKEN_EXPIRY} // expiry
+                        )
+
+
                         res.status(201).json({
                             status:true,
                             message: "User created successfully",
-                            data: null
-                            // {
-                                // id:newUser.id,
-                                // name:newUser.name,
-                                // email:newUser.email,
-                                // image:newUser.image,
-                                // role:newUser.role
-                            // }
+                            access_token: token,
+                            data: 
+                            {
+                                id:newUser.id,
+                                name:newUser.name,
+                                email:newUser.email,
+                                image:newUser.image,
+                                role:newUser.role
+                            }
                         })
                     }
                 }
@@ -74,9 +83,9 @@ export const userLogin = async (req,res,next) => {
                             console.log('Validation error:', errors.array())
             return next(new HttpError("Invalid input: "+ errors.array()[0].msg,422))
         }else{
+
             const {email, password} = req.body
 
-            
             const user = await User.findOne({email:email})
 
                 if (!user){

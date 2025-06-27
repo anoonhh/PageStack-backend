@@ -91,11 +91,11 @@ export const editBook = async (req, res, next) =>{
         //     }else{
                         const imagePath = req.file ? req.file.path : null
 
-                        
+                        console.log(imagePath,"paaaath")
              
                           const update = {
                             title : title ,
-                            image: imagePath ,
+                            // image: imagePath ,
                             author: author ,
                             description: description ,
                             price: price ,
@@ -103,6 +103,7 @@ export const editBook = async (req, res, next) =>{
                             category: category ,
                             rating: rating 
                           }
+
                         if(imagePath){
                             update.image = imagePath
                         }
@@ -271,7 +272,13 @@ export const getAllBook = async (req,res,next) => {
     try{
 
         let bookList = []
+        let total = 0
         const { user_id: sellerId, user_role: tokenRole} = req.user_data
+
+        //pagination
+        const limit = parseInt(req.query.limit) || 4;
+        const skip = parseInt(req.query.skip) || 0
+
 
         if( tokenRole === "seller"){
             bookList =await Book.find({is_deleted: false , seller: sellerId})
@@ -279,6 +286,11 @@ export const getAllBook = async (req,res,next) => {
                 path: 'seller',
                 select: 'name '
             })
+            //pagination
+            .skip(skip)
+            .limit(limit)
+
+            total = await Book.countDocuments({is_deleted : false , seller: sellerId})
         }
         else{
              bookList = await Book.find({is_deleted:false})
@@ -286,12 +298,17 @@ export const getAllBook = async (req,res,next) => {
                 path: "seller",
                 select: "name"
             })
+            .skip(skip)
+            .limit(limit)
+
+            total = await Book.countDocuments({is_deleted: false})
         }
         ///if there is no book added by seller no need to show error
         if(bookList){
             res.status(200).json({
                 status: true,
                 data:bookList,
+                total : total,
                 message: null
 
             })

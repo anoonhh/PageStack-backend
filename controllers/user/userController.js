@@ -46,58 +46,68 @@ export const userEditProfile = async (req,res,next) => {
         if(!errors.isEmpty()){
             return next(new HttpError("Invalid input: "+errors.array()[0].msg, 422))
         }else{
+            console.log(req.body,"bodyyyy")
             // const id = req.params.id
             const {name , email } = req.body
             const {user_id, user_role} = req.user_data
             // const imagePath =req.file.path
 
             /////////////////////method 2////////////////////////
-            const imagePath = req.file ? req.file.path : undefined
-            const updateFields = {
-                name,
-                email,
-                };
+            const imagePath = req.file ? req.file.path : null
 
-                if (imagePath) {
-                updateFields.image = imagePath;
-                }
-//////////////////////////////////////////////////
+            const existingUser =await User.findOne({ _id: { $ne: user_id }, email:email})
 
-
-            /// no need to fetch id from params as token is passed in login
-            
-            // if(!mongoose.Types.ObjectId.isValid(id)){
-            //     return next(new HttpError("Invalid id",400))
-            // }
-
-            // if( user_id !== id){
-            //     return next(new HttpError("Access denied. You can only edit your own profile.", 403))
-            // } 
-
-            const updatedProfile = await User.findOneAndUpdate(
-                {_id:user_id},
-                // {
-                // name: name ,
-                // email : email ,
-                // image: imagePath 
-                // },
-                updateFields,         //////as per method 2
-                {new: true, runValidators:true}
-            ).select('-password')
-
-            if(!updatedProfile){
-                return next (new HttpError("Invalid credentials",400))
+            if(existingUser){
+                return next(new HttpError("Email already in use...", 403))
             } else {
 
-                res.status(200).json({
-                    status:true,
-                    data: null,
-                    message: 'profile updated successfully'
-                })
+                const updateFields = {
+                    name,
+                    email,
+                    };
+    
+                    if (imagePath) {
+                    updateFields.image = imagePath;
+                    }
+    //////////////////////////////////////////////////
+    
+    
+                /// no need to fetch id from params as token is passed in login
+                
+                // if(!mongoose.Types.ObjectId.isValid(id)){
+                //     return next(new HttpError("Invalid id",400))
+                // }
+    
+                // if( user_id !== id){
+                //     return next(new HttpError("Access denied. You can only edit your own profile.", 403))
+                // } 
+    console.log(updateFields,"upddddd")
+                const updatedProfile = await User.findOneAndUpdate(
+                    {_id:user_id},
+                    // {
+                    // name: name ,
+                    // email : email ,
+                    // image: imagePath 
+                    // },
+                    updateFields,         //////as per method 2
+                    {new: true, runValidators:true}
+                ).select('-password')
+    
+                if(!updatedProfile){
+                    return next (new HttpError("Invalid credentials",400))
+                } else {
+    
+                    res.status(200).json({
+                        status:true,
+                        data: null,
+                        message: 'profile updated successfully'
+                    })
+                }
             }
         }
     }
     catch(error){
+        console.log(error,"rrrrrr")
         return next(new HttpError("Oops! Something went wrong", 500))
     }
 }
