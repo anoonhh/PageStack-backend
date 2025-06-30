@@ -9,6 +9,7 @@ const userRoute = Router()
 userRoute.use(userAuthCheck)
 
 userRoute.get('/viewprofile',userViewProfile)
+
 userRoute.patch('/editprofile', upload.single('image'),
     [
        check('name').optional().notEmpty().withMessage('Name is required'),

@@ -21,6 +21,7 @@ authRoute.post('/registration',upload.single('image'),
             .isIn(['seller','buyer']).withMessage("Role must be either seller or buyer")
      ]
     ,registerUser)
+    
 authRoute.post('/login',
     [
         check('email').isEmail().withMessage('Invalid email'),

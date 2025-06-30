@@ -5,12 +5,11 @@ import {
     editBook,
     viewBook,
     deleteBook,
-    // listSellerBooks,
-    // viewSellerBook
-} from '../../controllers/book/bookController.js'
+    } from '../../controllers/book/bookController.js'
 import userAuthCheck from '../../middlewares/userAuthCheck.js'
 import { check } from 'express-validator'
 import upload from '../../middlewares/fileUpload.js'
+
 
 const bookRoute = Router()
 
@@ -35,7 +34,9 @@ bookRoute.post("/addbook",upload.single('image'),
 
     ],
     addBook)
+
 bookRoute.get('/',getAllBook)
+
 bookRoute.patch('/updatebook/:id',upload.single('image'),
     [
         check("title").optional().notEmpty().withMessage("Title cannot be empty"),
@@ -54,9 +55,10 @@ bookRoute.patch('/updatebook/:id',upload.single('image'),
         check("rating").optional().isFloat({min:0, max:5}).withMessage("Rating must be between 0 and 5")
     ]
     ,editBook)
+
 bookRoute.get('/viewbook/:id',viewBook)
+
 bookRoute.patch('/delete/:id',deleteBook)
-// bookRoute.get('/sellerbooklist',listSellerBooks)
-// bookRoute.get('/sellerviewbook/:id',viewSellerBook)
+
 
 export default bookRoute

@@ -6,30 +6,19 @@ import { validationResult } from 'express-validator'
 //view Profile
 export const userViewProfile = async (req , res , next) =>{
     try{
-        // const id = req.params.id
         const {user_id, user_role} = req.user_data
-       
 
-        // if(!mongoose.Types.ObjectId.isValid(id)){
-        //     return next(new HttpError("Invalid id", 400))
-        // }
-        // if( !user_id){
-        //      return next(new HttpError("Access denied. ", 403));
-        // }
+        const viewProfile = await User.findById(user_id).select('-password')
 
-        // else{
-            const viewProfile = await User.findById(user_id).select('-password')
+        if(!viewProfile){
+            return next(new HttpError("User not found",404))
+        }
 
-            if(!viewProfile){
-                return next(new HttpError("User not found",404))
-            }
-
-            res.status(200).json({
-                status : true,
-                data : viewProfile,
-                message: null
-            })
-        // }    
+        res.status(200).json({
+            status : true,
+            data : viewProfile,
+            message: null
+        })
     }
     catch(error){
         return next(new HttpError("Oops.. Something went wrong!", 500))
@@ -45,14 +34,11 @@ export const userEditProfile = async (req,res,next) => {
 
         if(!errors.isEmpty()){
             return next(new HttpError("Invalid input: "+errors.array()[0].msg, 422))
-        }else{
-            console.log(req.body,"bodyyyy")
-            // const id = req.params.id
+        }
+        else{
             const {name , email } = req.body
             const {user_id, user_role} = req.user_data
-            // const imagePath =req.file.path
 
-            /////////////////////method 2////////////////////////
             const imagePath = req.file ? req.file.path : null
 
             const existingUser =await User.findOne({ _id: { $ne: user_id }, email:email})
@@ -66,30 +52,13 @@ export const userEditProfile = async (req,res,next) => {
                     email,
                     };
     
-                    if (imagePath) {
-                    updateFields.image = imagePath;
-                    }
-    //////////////////////////////////////////////////
+                if (imagePath) {
+                updateFields.image = imagePath;
+                }
     
-    
-                /// no need to fetch id from params as token is passed in login
-                
-                // if(!mongoose.Types.ObjectId.isValid(id)){
-                //     return next(new HttpError("Invalid id",400))
-                // }
-    
-                // if( user_id !== id){
-                //     return next(new HttpError("Access denied. You can only edit your own profile.", 403))
-                // } 
-    console.log(updateFields,"upddddd")
                 const updatedProfile = await User.findOneAndUpdate(
                     {_id:user_id},
-                    // {
-                    // name: name ,
-                    // email : email ,
-                    // image: imagePath 
-                    // },
-                    updateFields,         //////as per method 2
+                    updateFields,        
                     {new: true, runValidators:true}
                 ).select('-password')
     
@@ -107,7 +76,6 @@ export const userEditProfile = async (req,res,next) => {
         }
     }
     catch(error){
-        console.log(error,"rrrrrr")
         return next(new HttpError("Oops! Something went wrong", 500))
     }
 }
